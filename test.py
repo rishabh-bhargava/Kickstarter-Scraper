@@ -16,18 +16,22 @@ def get_categories():
 	html = urlopen(BASE_URL).read()
 	soup = BeautifulSoup(html, "lxml")
 	categ_list = soup.find("ul", "nav small_type")
-	categories = [li.text.encode('ascii', 'ignore').strip() for li in categ_list.findAll("li")]
-	print categories
+	categories = [(li.text.encode('ascii', 'ignore').strip(), BASE_URL[0:len(BASE_URL)-1] + li.a["href"]) for li in categ_list.findAll("li")]
+	#print categories
 	return categories
 
 def main():
 	valid_categories = get_categories()
-	while True:
+	not_found = True
+	while not_found:
 		category = raw_input("Write category" + '\n')
-		if category in valid_categories:
-			break
-		print "Invalid category; try again."
-
+		for i in xrange(len(valid_categories)):
+			if category == valid_categories[i][0]:
+				link = valid_categories[i][1]
+				not_found = False
+		if not_found:
+			print "Invalid category; try again."
+	print link
 
 
 
