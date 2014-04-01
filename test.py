@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib2 import urlopen
+import re
 
 BASE_URL = "https://www.kickstarter.com/"
 
@@ -9,6 +10,21 @@ def get_projects(categ_url):
 	titles = [title.find("h2") for title in soup.findAll("div", "project-card")]
 	links = [BASE_URL[0:len(BASE_URL)-1] + h2.a["href"] for h2 in titles]
 	return links
+
+def get_project_data(project_link):
+	html = urlopen(project_link).read()
+	soup = BeautifulSoup(html, "lxml")
+	name_cont = soup.find("div", "NS-project_-running_board")
+	name = name_cont.find("h2").text.encode('ascii', 'ignore').strip()
+
+	money_cont = soup.find("div", "NS_projects__ecom")
+	money_pledged = money_cont.find("h5").find_next_sibling("h5").div.data.text.encode('ascii', 'ignore').strip()
+	money = ""
+	for c in money_pledged:
+		if c.isdigit():
+			money += c
+	return name, money
+
 
 def get_categories():
 	html = urlopen(BASE_URL).read()
@@ -31,7 +47,14 @@ def main():
 			print "Invalid category; try again."
 	print link
 	project_links = get_projects(link)
-	print project_links
+	total_data = []
+	total_money = 0
+	for p_link in project_links:
+		p_data = get_project_data(p_link)
+		total_data.append(p_data)
+		total_money += float(p_data[1])
+	print total_money
+	print total_data
 
 
 
