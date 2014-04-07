@@ -4,6 +4,16 @@ import re
 
 BASE_URL = "https://www.kickstarter.com/"
 
+class Project(object):
+	def __init__ (self, name, pledged=0):
+		self.money_pledged = pledged
+		self.name = name
+
+	def __str__(self):
+		return str(self.name) + ": $" + str(self.money_pledged)
+
+
+# This gets the list of projects on the given category webpage
 def get_projects(categ_url):
 	html = urlopen(categ_url).read()
 	soup = BeautifulSoup(html, "lxml")
@@ -11,6 +21,8 @@ def get_projects(categ_url):
 	links = [BASE_URL[0:len(BASE_URL)-1] + h2.a["href"] for h2 in titles]
 	return links
 
+
+# This gets the data (name and money_pledged) of a particular project given the link to the project page
 def get_project_data(project_link):
 	html = urlopen(project_link).read()
 	soup = BeautifulSoup(html, "lxml")
@@ -23,9 +35,10 @@ def get_project_data(project_link):
 	for c in money_pledged:
 		if c.isdigit():
 			money += c
-	return name, money
+	return Project(name = name, pledged = money)
 
 
+#	This returns all the categories of Kickstarter projects as a list from the website
 def get_categories():
 	html = urlopen(BASE_URL).read()
 	soup = BeautifulSoup(html, "lxml")
@@ -51,10 +64,11 @@ def main():
 	total_money = 0
 	for p_link in project_links:
 		p_data = get_project_data(p_link)
+		print p_data
 		total_data.append(p_data)
-		total_money += float(p_data[1])
-	print total_money
-	print total_data
+		total_money += float(p_data.money_pledged)
+	print "Total money pledged to these 20 projects is: " + str(total_money)
+	#print str(total_data)
 
 
 
